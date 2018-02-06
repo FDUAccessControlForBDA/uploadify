@@ -1,0 +1,45 @@
+<div id="main-container">
+    <div class="main-title">隐私信息检测工具</div>
+    <div class="main-description">
+        <div>数据上传格式要求：csv、xls、xlsx、txt、pdf</div>
+        <div>检测内容：身份证号、电话号码、银行卡号、电子邮箱、IP地址、MAC地址</div>
+    </div>
+    <div class="upload-window">
+        <div class="no-file">
+            <div id="upload-text">把文件拖到到此处开始上传</div>
+            <span id="file-size-msg">
+            <em>为保证运行稳定，建议文件大小不超过 1GB</em>
+            </span>
+            <input id="file-upload"
+                   type="file"
+                   name="fileUploaded"/>
+                   <!--onchange = "angular.element(this).scope().getFile(this.files)"-->
+
+            <label for="file-upload"
+                   id="browse"
+                   class="btn browse"
+                   title="选择一个要上传的文件">选择一个要上传的文件</label>
+        </div>
+        <div class="has-file" style="display: none;">
+            <table id="fileInfo">
+                <tr><td class="colored">文件名</td><td id="fileName"></tr>
+                <tr><td class="colored">文件类型</td><td id="fileType"></tr>
+                <tr><td class="colored">文件大小</td><td id="fileSize"></tr>
+            </table>
+            <div class="buttons">
+                <button class="btn btn-sm btn-info" id="btn-upload">
+                    检测
+                </button>
+                <button class="btn btn-warning btn-sm" id="btn-cancel" ng-click="cancelUpload()">
+                    取消
+                </button>
+            </div>
+            <div id="process"></div>
+        </div>
+    </div>
+
+
+    <div id="file-list" style="display: none;">
+        <p>上传成功</p>
+    </div>
+</div>

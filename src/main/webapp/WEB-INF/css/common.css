@@ -1,0 +1,43 @@
+#main {
+    width: 90%;
+    min-width:900px;
+    position: relative;
+    margin: 0 auto;
+    height: auto !important;
+    height: 100%;
+    min-height: 100%;
+}
+.a-title{
+    color: white;
+}
+.a-title:hover, .a-title:focus {
+    text-decoration: none;
+    color: #e2e2e4;
+}
+.my-navbar {
+    background-color: #009dd7;
+}
+.lufi-subtitle {
+    float: left;
+    margin-top: -7px;
+    margin-bottom: 7px;
+    color: white;
+    font-size: initial;
+}
+
+.lufi-nav-right {
+    float: right;
+    margin-top: -12px;
+}
+
+.navbar-nav li>a, .navbar-nav li>a:hover, .navbar-nav li>a:focus{
+    background-color: #009dd7;
+    font-size: initial;
+}
+
+.footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
