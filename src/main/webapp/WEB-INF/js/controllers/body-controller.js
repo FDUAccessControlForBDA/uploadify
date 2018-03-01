@@ -14,4 +14,8 @@ angular.module('body.controllers', [])
     .controller('aboutCtrl', function($rootScope, $scope, $http) {
 
     })
+
+    .controller('contactCtrl', function($rootScope, $scope, $http) {
+
+    })
 ;

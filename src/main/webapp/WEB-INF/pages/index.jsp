@@ -31,7 +31,7 @@
 <body>
 <nav class="navbar my-navbar" role="navigation">
     <div class="container-fluid">
-        <a href="#" class="a-title">
+        <a href="#main" class="a-title">
             <h1><span class="glyphicon glyphicon-cloud-upload" style="float: left; line-height: 18px;">LUFI&nbsp;</span></h1>
         </a>
         <div class="lufi-subtitle">
@@ -40,10 +40,10 @@
         </div>
         <div class="lufi-nav-right">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#" class="a-title">法律</a></li>
-                <li><a href="#" class="a-title">隐私</a></li>
-                <li><a href="#" class="a-title">关于</a></li>
-                <li><a href="#" class="a-title">联系我们</a></li>
+                <li class="active"><a href="#law" class="a-title">法律</a></li>
+                <li><a href="#privacy" class="a-title">隐私</a></li>
+                <li><a href="#about" class="a-title">关于</a></li>
+                <li><a href="#contact" class="a-title">联系我们</a></li>
             </ul>
         </div>
     </div>

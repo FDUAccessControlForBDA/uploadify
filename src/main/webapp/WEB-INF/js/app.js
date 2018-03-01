@@ -12,30 +12,31 @@ lufiApp.config(['$stateProvider', '$urlRouterProvider', function($stateProvider,
             controller: 'mainCtrl'
         })
 
-        .state('body', {
-            url: '/body',
-            abstract: true,
-            templateUrl: 'templates/body.html'
-        })
-
-        .state('body.law', {
+        .state('law', {
             url: '/law',
             cache: 'false',
             templateUrl: 'templates/law.html',
             controller: 'lawCtrl'
         })
 
-        .state('body.privacy', {
+        .state('privacy', {
             url: '/privacy',
             cache: 'false',
             templateUrl: 'templates/privacy.html',
             controller: 'privacyCtrl'
         })
 
-        .state('body.about', {
+        .state('about', {
             url: '/about',
             cache: 'false',
             templateUrl: 'templates/about.html',
             controller: 'aboutCtrl'
+        })
+
+        .state('contact', {
+            url: '/contact',
+            cache: 'false',
+            templateUrl: 'templates/contact.html',
+            controller: 'contactCtrl'
         })
 }]);
