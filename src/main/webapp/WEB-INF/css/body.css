@@ -1,0 +1,17 @@
+#law-container, #privacy-container, #contact-container, #about-container {
+    width: 900px;
+    margin:50px auto;
+}
+
+h3 {
+    text-align: center;
+}
+
+.text-content{
+    font-size: initial;
+    text-indent:2em;
+}
+
+.back-button {
+    font-size: initial;
+}

@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/lib/webuploader/webuploader.css">
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/body.css">
 
     <script src="/lib/jquery-3.1.1.js"></script>
     <script src="/lib/angular/angular.min.js"></script>
@@ -40,7 +41,8 @@
         </div>
         <div class="lufi-nav-right">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#law" class="a-title">法律</a></li>
+                <li class="active"><a href="#main" class="a-title">首页</a></li>
+                <li><a href="#law" class="a-title">法律</a></li>
                 <li><a href="#privacy" class="a-title">隐私</a></li>
                 <li><a href="#about" class="a-title">关于</a></li>
                 <li><a href="#contact" class="a-title">联系我们</a></li>
