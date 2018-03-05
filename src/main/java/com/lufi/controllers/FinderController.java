@@ -29,7 +29,6 @@ public class FinderController {
         return "test";
     }
 
-
     @GetMapping("asynctask")
     @ResponseBody
     public DeferredResult<String> asyncTask(@RequestParam(value = "fileName") String fileName) {
@@ -149,6 +148,11 @@ class LongTimeAsyncCallService {
                         while (line!=null){
                             if (line.equals("true")){
                                 callback.callback("长时间异步调用完成.");
+
+                                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                                        new FileOutputStream(flagFilePath)));
+                                writer.write(false + "\n");
+                                writer.close();
                                 break;
                             }
                             line = reader.readLine();
@@ -160,14 +164,5 @@ class LongTimeAsyncCallService {
                 }
             }
         }, 0, TimeUnit.SECONDS);
-
-        try {
-            File flagFile = new File("C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\files\\flag.txt");
-            if (flagFile.exists()) {
-                FileUtils.forceDelete(flagFile);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
