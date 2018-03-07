@@ -16,6 +16,7 @@ angular.module('lufiApp.controllers', [])
 
         };
         $scope.myFile = null;
+        $scope.proccessed = 0;
         var md5File;
         //监听分块上传过程中的时间点
         WebUploader.Uploader.register({
@@ -91,9 +92,9 @@ angular.module('lufiApp.controllers', [])
                         success: function (response) {
                             if (response) {
                                 $('#' + file.id).find('p.state').text('检测中....');
+                                $scope.id = setInterval(showProccess($scope.myFile.size / 1024), 1000);
                                 asynctask();
                                 // $('#' + file.id).find('.progress').fadeOut();
-
                             } else {
                                 $('#' + file.id).find('p.state').text('上传出错');
                                 deferred.reject();
@@ -104,6 +105,23 @@ angular.module('lufiApp.controllers', [])
                 }
             }
         });
+
+        function showProccess(fileSize){
+            var $li = $('#' + $scope.myFile.id),
+                $percent = $li.find('.progress .progress-bar');
+            if(fileSize - $scope.proccessed > 10){
+                $scope.proccessed += 10;
+                if($scope.proccessed <= fileSize){
+                    $percent.css('width', ($scope.proccessed / fileSize) * 100 + '%');
+                }else{
+                    $percent.css('width',  '100%');
+                    clearInterval($scope.id);
+                }
+            }else{
+                $percent.css('width',  '100%');
+                clearInterval($scope.id);
+            }
+        }
 
         function asynctask() {
             $.ajax({
@@ -128,7 +146,6 @@ angular.module('lufiApp.controllers', [])
                     console.log("failed asynctask");
                     console.log(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);
                     console.log(textStatus + errorThrown);
-                    // $('#' + $scope.myFile.id).find('p.state').text('检测中....');
                     checkAsyncTaskCompleted();
                 }
             });
@@ -291,6 +308,6 @@ angular.module('lufiApp.controllers', [])
             uploader.removeFile($scope.myFile.id, true);
             location.reload();
             $scope.myFile = null;
-            changeState();
+            // changeState();
         };
     });
