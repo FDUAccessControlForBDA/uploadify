@@ -9,11 +9,13 @@
        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
+    <!-- 配置数据库相关参数 -->
+    <context:property-placeholder location="classpath:config.properties"/>
 
     <!-- 配置自动扫描的包 不用这个无法扫描到全部注解
         exclude-filter标签是指过滤掉controller
         后面单独添加扫描，添加在spring-dispatcher-servlet.xml里面-->
-    <context:component-scan base-package="com.lufi.controllers">
+    <context:component-scan base-package="com.lufi.services">
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
         <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
     </context:component-scan>
@@ -24,5 +26,43 @@
 
     <!-- 开启注解 -->
     <mvc:annotation-driven/>
+
+    <!-- 开启数据库连接 -->
+    <!-- 配置hibernate连接参数 -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${hibernate.connection.driver_class}"/>
+        <property name="jdbcUrl" value="${hibernate.connection.url}"/>
+        <property name="user" value="${hibernate.connection.username}"/>
+        <property name="password" value="${hibernate.connection.password}"/>
+    </bean>
+
+    <!-- 配置sessionFactory -->
+    <!-- 注意记得用hibernate5 -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource"><ref bean="dataSource"/></property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                <prop key="hbm2ddl.auto">update</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="format_sql">true</prop>
+            </props>
+        </property>
+
+        <property name="packagesToScan">
+            <list>
+                <value>com.lufi.services.model</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 事务管理 -->
+    <!-- 注意记得用hibernate5 -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- 开启事务管理注解 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 
 </beans>

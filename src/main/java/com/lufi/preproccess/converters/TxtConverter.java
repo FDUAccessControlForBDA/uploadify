@@ -22,7 +22,6 @@ public class TxtConverter implements Converter, Serializable {
     private long lines;
     private long size;
 
-    private static File targetFile = null;
     private static BufferedWriter writer = null;
 
 
@@ -37,7 +36,6 @@ public class TxtConverter implements Converter, Serializable {
             return null;
         }
 
-        String buffer;
         long i = 1;
         BufferedReader reader;
         try {
@@ -45,21 +43,24 @@ public class TxtConverter implements Converter, Serializable {
             reader = new BufferedReader(new FileReader(fileName));
             String data;
             while ((data = reader.readLine()) != null) {
+                //对于需要反复增加的String,使用StringBuild能够提高效率
+                StringBuilder buffer = new StringBuilder();
                 if (!data.trim().isEmpty()) { // 判断是否一整行都是空格
                     // 将空格和中文的逗号都替换为英文的逗号
-                    buffer = i + "," + regexNonePrintChar(data) + System.getProperty("line.separator");
+                    buffer.append(i + "," + regexNonePrintChar(data) + System.getProperty("line.separator"));
                 } else {
-                    buffer = i + "," + System.getProperty("line.separator");
+                    buffer.append(i + "," + System.getProperty("line.separator"));
                 }
                 // txt文件中的一行对应csv文件中的一行，因此不需要存储额外的匹配信息。
                 // 1-1, 2-2, 3-3, ...
                 // 当一行全部为空格时，以“数字+逗号”的形式表示这一行
                 // 例如：第142行全是空格，则在转换后csv中表示为“142，”
-                writer.write(buffer);
+                writer.write(buffer.toString());
                 i++;
             }
             lines = i - 1;
             writer.close();
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,13 +89,10 @@ public class TxtConverter implements Converter, Serializable {
         this.map = new HashMap<>();
         File file = new File(fileName);
         this.size = file.length();
-        targetFile = new File(newFileName);
+        File targetFile = new File(newFileName);
         writer = null;
 
         try {
-            if (!targetFile.exists()) {
-                targetFile.createNewFile();
-            }
             writer = new BufferedWriter(new FileWriter(targetFile));
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,7 +112,6 @@ public class TxtConverter implements Converter, Serializable {
     private static String regexNonePrintChar(String content) {
         Pattern pattern = Pattern.compile("\\s+|[，]");
         Matcher matcher = pattern.matcher(content);
-        String result = matcher.replaceAll(",");
-        return result;
+        return matcher.replaceAll(",");
     }
 }

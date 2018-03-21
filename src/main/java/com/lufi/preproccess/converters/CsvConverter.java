@@ -20,7 +20,6 @@ public class CsvConverter implements Converter {
     private long lines;
     private long size;
 
-    private static File targetFile = null;
     private static BufferedWriter writer = null;
 
     @Override
@@ -32,7 +31,6 @@ public class CsvConverter implements Converter {
             return null;
         }
 
-        String buffer;
         long i = 1;
         BufferedReader reader;
 
@@ -41,17 +39,20 @@ public class CsvConverter implements Converter {
             reader = new BufferedReader(new FileReader(fileName));
             String data;
             while ((data = reader.readLine()) != null) {
+                //对于需要反复增加的String,使用StringBuild能够提高效率
+                StringBuilder buffer = new StringBuilder();
                 String ret = regexNonePrintChar(data);
                 if (ret.startsWith(",")) {
-                    buffer = i + ret + System.getProperty("line.separator");
+                    buffer.append(i + ret + System.getProperty("line.separator"));
                 } else {
-                    buffer = i + "," + ret + System.getProperty("line.separator");
+                    buffer.append(i + "," + ret + System.getProperty("line.separator"));
                 }
-                writer.write(buffer);
+                writer.write(buffer.toString());
                 i++;
             }
             lines = i - 1;
             writer.close();
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,13 +81,10 @@ public class CsvConverter implements Converter {
         this.map = new HashMap<>();
         File file = new File(fileName);
         this.size = file.length();
-        targetFile = new File(newFileName);
+        File targetFile = new File(newFileName);
         writer = null;
 
         try {
-            if (!targetFile.exists()) {
-                targetFile.createNewFile();
-            }
             writer = new BufferedWriter(new FileWriter(targetFile));
         } catch (IOException e) {
             e.printStackTrace();
@@ -108,7 +106,6 @@ public class CsvConverter implements Converter {
                 "\\u300e\\u300f\\u2018\\u2019\\u201c\\u201d\\uff08\\uff09\\u3014\\u3015\\u3010\\u3011\\u2014\\u2026" +
                 "\\u2013\\uff0e\\u300a\\u300b\\u3008\\u3009]+|[\\\\n]");
         Matcher matcher = pattern.matcher(content);
-        String result = matcher.replaceAll(",");
-        return result;
+        return matcher.replaceAll(",");
     }
 }

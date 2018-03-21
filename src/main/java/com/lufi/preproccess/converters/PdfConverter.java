@@ -27,7 +27,6 @@ public class PdfConverter implements Converter, Serializable {
     private long lines;
     private long size;
 
-    private static File targetFile = null;
     private static BufferedWriter writer = null;
 
     public PdfConverter() {
@@ -41,7 +40,6 @@ public class PdfConverter implements Converter, Serializable {
             return null;
         }
 
-        String buffer;
         String tmp;
         long j = 1;
         try {
@@ -70,15 +68,17 @@ public class PdfConverter implements Converter, Serializable {
                 String data;
                 long start = j;
                 while ((data = reader.readLine()) != null) {
+                    //对于需要反复增加的String,使用StringBuild能够提高效率
+                    StringBuilder buffer = new StringBuilder();
                     if (!data.trim().isEmpty()) { // 判断是否一整行都是空格
                         // 将空格和中文的逗号都替换为英文的逗号
                         String ret = regexNonePrintChar(data);
                         if (ret.startsWith(",")) {
-                            buffer = j + ret + System.getProperty("line.separator");
+                            buffer.append(j + ret + System.getProperty("line.separator"));
                         } else {
-                            buffer = j + "," + ret + System.getProperty("line.separator");
+                            buffer.append(j + "," + ret + System.getProperty("line.separator"));
                         }
-                        writer.write(buffer);
+                        writer.write(buffer.toString());
                         j++;
                     }
                 }
@@ -89,6 +89,8 @@ public class PdfConverter implements Converter, Serializable {
                     map.put(i + "", null);
                 else
                     map.put(i + "", start + "-" + end);
+
+                reader.close();
             }
             lines = j - 1;
             writer.close();
@@ -120,13 +122,10 @@ public class PdfConverter implements Converter, Serializable {
         this.map = new HashMap<>();
         File file = new File(fileName);
         this.size = file.length();
-        targetFile = new File(newFileName);
+        File targetFile = new File(newFileName);
         writer = null;
 
         try {
-            if (!targetFile.exists()) {
-                targetFile.createNewFile();
-            }
             writer = new BufferedWriter(new FileWriter(targetFile));
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,7 +145,6 @@ public class PdfConverter implements Converter, Serializable {
     private static String regexNonePrintChar(String content) {
         Pattern pattern = Pattern.compile("\\s+|[，]");
         Matcher matcher = pattern.matcher(content);
-        String result = matcher.replaceAll(",");
-        return result;
+        return matcher.replaceAll(",");
     }
 }

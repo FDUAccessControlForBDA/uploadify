@@ -27,7 +27,6 @@ public class ExcelConverter implements Converter {
     private long lines;
     private long size;
 
-    private static File targetFile = null;
     private static BufferedWriter writer = null;
 
     public ExcelConverter() {
@@ -41,7 +40,6 @@ public class ExcelConverter implements Converter {
         if (!FilenameUtils.getExtension(fileName).toLowerCase().contains(Constants.SUFFIX_XLS)) {
             return null;
         }
-        String buffer;
         InputStream in;
         long m = 1;
         try {
@@ -56,14 +54,16 @@ public class ExcelConverter implements Converter {
                 long start = m;
                 for (int j = 0; j < sheet.getLastRowNum(); j++) {
                     row = sheet.getRow(j);
-                    buffer = m + ",";
+                    //对于需要反复增加的String,使用StringBuild能够提高效率
+                    StringBuilder buffer = new StringBuilder();
+                    buffer.append( m + ",");
                     for (int k = 0; k < row.getLastCellNum(); k++) {
                         // 去掉所有cell中的空值
                         if (row.getCell(k) != null && String.valueOf(row.getCell(k)).length() != 0)
-                            buffer += regexNonePrintChar(String.valueOf(row.getCell(k))) + ",";
+                            buffer.append( regexNonePrintChar(String.valueOf(row.getCell(k))) + ",");
                     }
-                    buffer += System.getProperty("line.separator");
-                    writer.write(buffer);
+                    buffer.append(System.getProperty("line.separator"));
+                    writer.write(buffer.toString());
                     m++;
                 }
                 // Excel文件工作簿名和csv文件行数的mapping
@@ -78,8 +78,6 @@ public class ExcelConverter implements Converter {
             writer.close();
             in.close();
         } catch (InvalidFormatException | IOException ex) {
-            Logger.getLogger(ExcelConverter.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ArithmeticException ex) {
             Logger.getLogger(ExcelConverter.class.getName()).log(Level.SEVERE, null, ex);
         }
         return newFileName;
@@ -107,13 +105,10 @@ public class ExcelConverter implements Converter {
         this.map = new HashMap<>();
         File file = new File(fileName);
         this.size = file.length();
-        targetFile = new File(newFileName);
+        File targetFile = new File(newFileName);
         writer = null;
 
         try {
-            if (!targetFile.exists()) {
-                targetFile.createNewFile();
-            }
             writer = new BufferedWriter(new FileWriter(targetFile));
         } catch (IOException e) {
             e.printStackTrace();
@@ -133,7 +128,6 @@ public class ExcelConverter implements Converter {
     private static String regexNonePrintChar(String content) {
         Pattern pattern = Pattern.compile("\\s+");
         Matcher matcher = pattern.matcher(content);
-        String result = matcher.replaceAll("");
-        return result;
+        return matcher.replaceAll("");
     }
 }

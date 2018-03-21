@@ -7,6 +7,7 @@ import com.lufi.preproccess.Converter;
 import com.lufi.preproccess.ConverterFactory;
 import com.lufi.snapshot.SnapShot;
 import com.lufi.utils.FilenameUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.SparkConf;
@@ -38,7 +39,6 @@ public class Finder implements Serializable {
         snapShot = new SnapShot();
         conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
         sc = new JavaSparkContext(conf);
-        System.out.println("java spark context");
         matchers = new Matchers();
         matchers.addMatcher(IdMatcher.getInstance());
         matchers.addMatcher(PhoneMatcher.getInstance());
@@ -58,9 +58,7 @@ public class Finder implements Serializable {
         return INSTANCE;
     }
 
-
     public void input(final String path) {
-        System.out.println("input");
         if (path == null) {
             return;
         } else {
@@ -69,9 +67,7 @@ public class Finder implements Serializable {
         System.out.println("------文件输入成功！------");
     }
 
-
     public boolean convert() {
-        System.out.println("in convert");
         ConverterFactory factory = new ConverterFactory();
         String extension = FilenameUtils.getExtension(filePath);
         converter = factory.getConverter(extension);
@@ -137,6 +133,18 @@ public class Finder implements Serializable {
             e.printStackTrace();
         } finally {
             System.out.println("------快照处理成功！------");
+        }
+    }
+
+    public void deleteFile(){
+        try{
+            FileUtils.forceDelete(new File(filePath));
+            FileUtils.forceDelete(new File(convertedFilePath));
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally {
+            System.out.println("------输入源文件删除成功！------");
+            System.out.println("------预处理中间文件成功！------");
         }
     }
 

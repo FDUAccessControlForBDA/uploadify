@@ -3,16 +3,19 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context
        http://www.springframework.org/schema/context/spring-context.xsd
        http://www.springframework.org/schema/mvc
-       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/task
+       http://www.springframework.org/schema/task/spring-task.xsd">
 
     <!-- 配置自动扫描的包
         除了applicationContext.xml之外，这里要重写一遍，主要是配置默认的servlet-->
-    <context:component-scan base-package="com.lufi.controllers" use-default-filters="false">
+    <context:component-scan base-package="com.lufi.services" use-default-filters="false">
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
         <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
     </context:component-scan>
@@ -22,11 +25,13 @@
     <mvc:resources mapping="lib/**" location="/WEB-INF/lib/"/>
     <mvc:resources mapping="/templates/**" location="/WEB-INF/templates/"/>
 
+    <!-- 配置访问jsp -->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/pages/" />
         <property name="suffix" value=".jsp" />
     </bean>
 
+    <!-- 配置上传文件大小 -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         <property name="maxUploadSize" value="1000000000"/>
     </bean>
@@ -42,5 +47,12 @@
 
     <!--这里单独扫描一遍controller-->
     <context:component-scan base-package="com.lufi.controllers" />
+    
+    <!-- 定时任务支持 -->
+    <bean id="myTask" class="com.lufi.services.service.DeleteLogTask"/>
+    <task:scheduled-tasks>
+        <!--<task:scheduled ref="myTask" method="deleteLog" cron="0 */1 * * * *"/>-->
+        <task:scheduled ref="myTask" method="deleteLog" cron="0 * * * * */1"/>
+    </task:scheduled-tasks>
 
 </beans>

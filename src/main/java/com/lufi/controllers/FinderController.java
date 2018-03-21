@@ -1,8 +1,12 @@
 package com.lufi.controllers;
 
 import com.lufi.core.Finder;
+import com.lufi.services.service.LogService;
+import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
+import com.lufi.utils.TimerUtil;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 @Controller
 public class FinderController {
+
+    @Autowired
+    private LogService logService;
 
     @GetMapping("/test")
     public String page() {
@@ -63,17 +70,17 @@ public class FinderController {
         return deferredResult;
     }
 
-    @RequestMapping(value="/download")
+    @RequestMapping(value = "/download")
     public void downloadResource(HttpServletRequest request, HttpServletResponse response) {
-        String dataDirectory = "C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\tmp";
-        String fileName = FilenameUtils.getBaseName(request.getParameter("fileName"))+"_report.txt";
-        Path file = Paths.get(dataDirectory, fileName);
+        String fileName = FilenameUtils.getBaseName(request.getParameter("fileName")) + "_report.txt";
+        Path file = Paths.get(Constants.ADDRESS_STORE, fileName);
         if (Files.exists(file)) {
             response.setContentType("text/plain");
             response.setHeader("Set-Cookie", "fileDownload=true; path=/");
             try {
-                response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, "UTF-8"));
-            }catch (UnsupportedEncodingException e){
+                response.addHeader("Content-Disposition", "attachment; filename="
+                        + URLEncoder.encode(fileName, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
                 System.out.println("编码不支持");
             }
 
@@ -82,10 +89,9 @@ public class FinderController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            logService.addLog(fileName, null, Constants.FLAG_INVALID, TimerUtil.getCurrentTime());
         }
     }
-
-
 }
 
 interface LongTermTaskCallback {
@@ -93,19 +99,21 @@ interface LongTermTaskCallback {
 }
 
 class LongTimeAsyncCallService {
+
+    @Autowired
+    private LogService logService;
+
     private int CorePoolSize = 4;
-    private String flagFilePath = "C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\files\\flag.txt";
+    private String flagFilePath = Constants.ADDRESS_FILES + "flag.txt";
     private Random random = new Random();
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(CorePoolSize);
     private String uploadFilePath;
 
-    public LongTimeAsyncCallService(){
-    }
+    public LongTimeAsyncCallService() {}
 
-    public LongTimeAsyncCallService(final String uploadFilePath){
-        this.uploadFilePath = "C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\tmp\\"+uploadFilePath;
+    public LongTimeAsyncCallService(final String uploadFilePath) {
+        this.uploadFilePath = Constants.ADDRESS_STORE + uploadFilePath;
     }
-
 
     public void makeRemoteCallAndUnknownWhenFinish(LongTermTaskCallback callback) {
         scheduler.schedule(new Runnable() {
@@ -114,7 +122,7 @@ class LongTimeAsyncCallService {
                 System.out.println("开始任务");
                 long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
-                if(uploadFilePath!=null){
+                if (uploadFilePath != null) {
                     System.out.println(uploadFilePath);
                     find.input(uploadFilePath);
                 }
@@ -127,11 +135,11 @@ class LongTimeAsyncCallService {
                             new FileOutputStream(flagFilePath)));
                     writer.write(true + "\n");
                     writer.close();
-                }catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
                 long endTime = System.currentTimeMillis();
-                System.out.println("處理時間:" + (endTime-startTime) / 1000 + "s");
+                System.out.println("处理时间:" + (endTime - startTime) / 1000 + "s");
             }
         }, 1, TimeUnit.SECONDS);
     }
@@ -142,11 +150,11 @@ class LongTimeAsyncCallService {
             public void run() {
                 File file = new File(flagFilePath);
                 try {
-                    if(file.exists()){
+                    if (file.exists()) {
                         BufferedReader reader = new BufferedReader(new FileReader(flagFilePath));
                         String line = reader.readLine();
-                        while (line!=null){
-                            if (line.equals("true")){
+                        while (line != null) {
+                            if (line.equals("true")) {
                                 callback.callback("长时间异步调用完成.");
 
                                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
@@ -159,7 +167,7 @@ class LongTimeAsyncCallService {
                         }
                         reader.close();
                     }
-                }catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

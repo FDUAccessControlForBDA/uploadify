@@ -2,6 +2,7 @@ package com.lufi.matching.matchers;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,8 +17,8 @@ public class Mapping {
                 .getResourceAsStream(String.format("%s.txt", name)));//用src/main/resource/%s.txt不行.
     }
 
-    public static Map<String, String> mapOf(final String filename) {
-        Map<String, String> mapping = new HashMap<>();
+    public static Map<String, String> mapOf(final String filename){
+        PatriciaTrie<String> mapping = new PatriciaTrie<>();
         Scanner cin = resource(filename);
         while (cin.hasNext()) {
             mapping.put(cin.next(), cin.next());
@@ -26,6 +27,18 @@ public class Mapping {
         cin.close();
         return mapping;
     }
+
+
+//    public static Map<String, String> mapOf(final String filename) {
+//        Map<String, String> mapping = new HashMap<>();
+//        Scanner cin = resource(filename);
+//        while (cin.hasNext()) {
+//            mapping.put(cin.next(), cin.next());
+//        }
+//
+//        cin.close();
+//        return mapping;
+//    }
 
     public static Map<String, String> mapOf(final String filename, final String tag) {
         Map<String, String> mapping = new HashMap<>();
