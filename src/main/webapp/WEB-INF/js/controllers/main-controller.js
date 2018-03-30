@@ -266,7 +266,7 @@ angular.module('lufiApp.controllers', [])
         uploader.on('fileQueued', function (file) {
             $scope.myFile = file;
             var timestamp = new Date().getTime();
-            $scope.myFile.name += '_' + timestamp;
+            $scope.myFile.name = timestamp + '_' + $scope.myFile.name;
             changeState();
             $("#process").append('<div id="' + file.id + '" class="item"><p class="state"></p><a class="btn btn-sm btn-info" id="download" style="display: none;" >下载报告</a></div>');
             $('#download')[0].addEventListener('click', download);
