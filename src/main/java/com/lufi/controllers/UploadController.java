@@ -9,19 +9,57 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 
 @Controller
 public class UploadController {
 
-    @Autowired
     private LogService logService;
 
     @GetMapping("/")
     public String page() {
-        return "index";
+        return "success";
     }
+
+    @RequestMapping(value = "upload", method = RequestMethod.POST)
+    @ResponseBody
+    public Boolean upload (@RequestParam(value = "files") MultipartFile [] files,
+                           @RequestParam(value = "id") String id,
+                           HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        try {
+            for (MultipartFile file : files){
+                System.out.println(file.getOriginalFilename());
+                copyFile(file);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean copyFile(MultipartFile file){
+        boolean ret = false;
+
+        try{
+            String path = Constants.ADDRESS_STORE+file.getOriginalFilename();
+            File filePath = new File(path);
+
+            //将文件拷贝到当前目录下
+            file.transferTo(filePath);
+            ret = true;
+        }catch (IOException e){
+            e.printStackTrace();
+            ret = false;
+        }
+        return ret;
+    }
+
+
 
     /**
      * @author symsimmy
@@ -31,7 +69,7 @@ public class UploadController {
     @ResponseBody
     public Boolean checkFile(@RequestParam(value = "md5File") String md5File) {
         //实际项目中，这个md5File唯一值，应该保存到数据库或者缓存中，通过判断唯一值存不存在，来判断文件存不存在，这里我就不演示了
-            return false;
+        return false;
     }
 
     /**
@@ -56,7 +94,7 @@ public class UploadController {
      * @author symsimmy
      * 修改上传
      */
-    @PostMapping("upload")
+    @PostMapping("uploadbak")
     @ResponseBody
     public Boolean upload(@RequestParam(value = "file") MultipartFile file,
                           @RequestParam(value = "md5File") String md5File,
@@ -97,7 +135,7 @@ public class UploadController {
                          @RequestParam(value = "md5File") String md5File,
                          @RequestParam(value = "name") String name) throws Exception {
 
-        FileOutputStream fileOutputStream = new FileOutputStream(Constants.ADDRESS_STORE  + name);  //合成后的文件
+        FileOutputStream fileOutputStream = new FileOutputStream(Constants.ADDRESS_STORE + name);  //合成后的文件
         try {
             byte[] buf = new byte[1024];
             for (long i = 0; i < chunks; i++) {
@@ -116,7 +154,7 @@ public class UploadController {
                 FileUtils.deleteDirectory(directory);
             }
 
-            logService.addLog(name,md5File, Constants.FLAG_DEFAULT, TimerUtil.getCurrentTime());
+            logService.addLog(name, md5File, Constants.FLAG_DEFAULT, TimerUtil.getCurrentTime());
 
         } catch (Exception e) {
             return false;
