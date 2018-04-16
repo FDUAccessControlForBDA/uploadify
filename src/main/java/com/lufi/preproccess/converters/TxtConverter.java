@@ -108,10 +108,4 @@ public class TxtConverter implements Converter, Serializable {
     public long getSize() {
         return size;
     }
-
-    private static String regexNonePrintChar(String content) {
-        Pattern pattern = Pattern.compile("\\s+|[，]");
-        Matcher matcher = pattern.matcher(content);
-        return matcher.replaceAll(",");
-    }
 }

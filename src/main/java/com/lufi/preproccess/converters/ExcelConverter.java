@@ -125,9 +125,4 @@ public class ExcelConverter implements Converter {
         return size;
     }
 
-    private static String regexNonePrintChar(String content) {
-        Pattern pattern = Pattern.compile("\\s+");
-        Matcher matcher = pattern.matcher(content);
-        return matcher.replaceAll("");
-    }
 }
