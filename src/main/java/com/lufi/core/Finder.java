@@ -13,9 +13,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.SparkConf;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Finder implements Serializable {
     private static Matchers matchers = new Matchers();
@@ -97,14 +95,18 @@ public class Finder implements Serializable {
         String ret = "";
         String detail = "";
         boolean flag = false;
+        Set<String> typeList = new HashSet<>();
         for (int i = 1; i < count; i++) {
             String element = splitx[i];
             String returnFlag = matchers.match(element);
             if (returnFlag != null) {
-                ret += returnFlag + ",";
+                typeList.add(returnFlag);
                 flag = true;
                 detail += splitx[i] + ",";
             }
+        }
+        for(String type: typeList){
+            ret += type + ",";
         }
         if (ret.endsWith(",")) {
             ret = ret.substring(0, ret.length() - 1);

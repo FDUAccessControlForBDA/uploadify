@@ -4,6 +4,7 @@ import com.lufi.matching.MatchInfo;
 import com.lufi.preproccess.Converter;
 import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
+import scala.collection.immutable.Stream;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -71,9 +72,11 @@ public class SnapShot implements Serializable {
     // 根据行数到原来的mapping中获取在源文件中的位置信息
     public String getLocationInfo(String line) {
         String result = "";
-        if (type.equals(Constants.SUFFIX_CSV) || type.equals(Constants.SUFFIX_TXT)) {
+        if (type.equalsIgnoreCase(Constants.SUFFIX_CSV) || type.equalsIgnoreCase(Constants.SUFFIX_TXT)) {
             result = "第" + line + "行";
-        } else if (type.equals(Constants.SUFFIX_XLS) || type.equals(Constants.SUFFIX_XLSX) || type.equals(Constants.SUFFIX_PDF)) {
+        } else if(type.equalsIgnoreCase(Constants.SUFFIX_DOC) || type.equalsIgnoreCase(Constants.SUFFIX_DOCX)){
+            result = "第" + line + "段";
+        } else if (type.equalsIgnoreCase(Constants.SUFFIX_XLS) || type.equalsIgnoreCase(Constants.SUFFIX_XLSX) || type.equalsIgnoreCase(Constants.SUFFIX_PDF)) {
             Map<String, String> map = converter.getMap();
             Set<String> keys = map.keySet();
             Iterator<String> it = keys.iterator();
