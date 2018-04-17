@@ -145,8 +145,8 @@
         chunked: true,//开启分片上传
         chunkSize: 5 * 1024 * 1024,//5M
         chunkRetry: 3,//错误重试次数
-        multiple: false,
-        fileNumLimit: 1
+        multiple: true,
+        fileNumLimit: 4
     });
 
     //上传添加参数
