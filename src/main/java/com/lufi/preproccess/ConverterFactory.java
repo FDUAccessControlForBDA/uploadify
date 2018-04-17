@@ -1,9 +1,6 @@
 package com.lufi.preproccess;
 
-import com.lufi.preproccess.converters.CsvConverter;
-import com.lufi.preproccess.converters.ExcelConverter;
-import com.lufi.preproccess.converters.PdfConverter;
-import com.lufi.preproccess.converters.TxtConverter;
+import com.lufi.preproccess.converters.*;
 import com.lufi.utils.Constants;
 
 /**
@@ -26,6 +23,10 @@ public class ConverterFactory {
             return new PdfConverter();
         else if(fileType.equalsIgnoreCase(Constants.SUFFIX_CSV))
             return new CsvConverter();
+        else if(fileType.equalsIgnoreCase(Constants.SUFFIX_DOC))
+            return new DocConverter();
+        else if(fileType.equalsIgnoreCase(Constants.SUFFIX_DOCX))
+            return new DocxConverter();
         return null;
     }
 

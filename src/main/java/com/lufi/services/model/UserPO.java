@@ -18,6 +18,7 @@ public class UserPO {
     @Column(name = "password")
     private String password;
 
+    //如果是使用uniqueResult的话,必须要加上这个无参构造函数
     public UserPO(){}
 
     public UserPO(String userName, String password) {
