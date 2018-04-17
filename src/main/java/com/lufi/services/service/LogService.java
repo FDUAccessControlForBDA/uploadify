@@ -1,14 +1,13 @@
 package com.lufi.services.service;
 
-import com.lufi.services.dao.FileOperationLogDaoImp;
+import com.lufi.services.dao.FileOperationDaoImp;
+import com.lufi.services.model.DetectHistoryPO;
 import com.lufi.services.model.FileOperationLogPO;
 import com.lufi.utils.Constants;
-import com.lufi.utils.TimerUtil;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import scala.collection.immutable.Stream;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -18,7 +17,7 @@ import java.util.List;
 public class LogService {
 
     @Autowired
-    private FileOperationLogDaoImp logDao;
+    private FileOperationDaoImp logDao;
 
     @Transactional
     public int  addLog(String file_name, String md5, int flag, Timestamp upload_time){
@@ -61,4 +60,26 @@ public class LogService {
          return 0;
      }
 
+     @Transactional
+    public int addFeedback(String content, String contact){
+        long ret = logDao.addFeedback(content,contact);
+        if(ret > 0)
+            return 1;
+        return 0;
+    }
+
+     @Transactional
+    public List<DetectHistoryPO> getHistories(String userId){
+        return logDao.getHistories(userId);
+     }
+
+     @Transactional
+    public DetectHistoryPO getHistory(String historyId){
+        return logDao.getHistory(historyId);
+     }
+
+     @Transactional
+    public long deleteHistory(String historyId){
+        return logDao.deleteHistory(historyId);
+     }
 }
