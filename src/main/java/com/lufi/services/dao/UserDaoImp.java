@@ -22,12 +22,7 @@ public class UserDaoImp implements UserDao{
         Query query = session.createQuery(hql).setParameter(0,userName);
         if(query.list().size()<=0){
             UserPO user = new UserPO(userName,password);
-            session.save(user);
-            query = session.createQuery(hql).setParameter(0,userName);
-            user = (UserPO) query.uniqueResult();
-            if(user != null){
-                rst = user.getId();
-            }
+            rst = (Long) session.save(user);
         }
         return rst;
     }
