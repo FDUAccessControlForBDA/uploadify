@@ -94,7 +94,7 @@ public class FinderController {
 
     @RequestMapping(value = "/download")
     public void downloadResource(HttpServletRequest request, HttpServletResponse response) {
-        String fileName = FilenameUtils.getBaseName(request.getParameter("fileName")) + "_report.txt";
+        String fileName = FilenameUtils.getBaseName(request.getParameter("fileName"));
         Path file = Paths.get(Constants.ADDRESS_STORE, fileName);
         if (Files.exists(file)) {
             response.setContentType("text/plain");
@@ -158,7 +158,7 @@ class LongTimeAsyncCallService {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                callback.callback("启动成功");
+                callback.callback("success");
                 long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
                 if (id != null && timestamp != null) {
