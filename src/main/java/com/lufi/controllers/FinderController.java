@@ -52,8 +52,8 @@ public class FinderController {
         DeferredResult<String> deferredResult = new DeferredResult<>();
         System.out.println("提交任务");
         //启动消费者
-        check(id,timestamp);
-        LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService(id,timestamp);
+        check(id, timestamp);
+        LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService(id, timestamp);
         longTimeAsyncCallService.makeRemoteCallAndUnknownWhenFinish(new LongTermTaskCallback() {
             @Override
             public void callback(String result) {
@@ -65,12 +65,12 @@ public class FinderController {
     }
 
     public void check(@RequestParam(value = "id") String id,
-                        @RequestParam(value = "timestamp") String timestamp) {
+                      @RequestParam(value = "timestamp") String timestamp) {
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("PushConsumer_sym");
         consumer.setNamesrvAddr(Constants.ROCKETMQ_NAMESRV);
 
         try {
-            consumer.subscribe(id,timestamp);
+            consumer.subscribe(id, timestamp);
             consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
 
             MessageListener listener = new MessageListener();
@@ -89,7 +89,7 @@ public class FinderController {
     public String fetch(@RequestParam(value = "id") String id,
                         @RequestParam(value = "timestamp") String timestamp) {
 
-        return  queue.poll();
+        return queue.poll();
     }
 
     @RequestMapping(value = "/download")
@@ -115,8 +115,9 @@ public class FinderController {
         }
     }
 
-    class MessageListener implements MessageListenerConcurrently{
+    class MessageListener implements MessageListenerConcurrently {
         private String message;
+
         @Override
         public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> list, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
             String message = new String(list.get(0).getBody());
@@ -125,7 +126,7 @@ public class FinderController {
             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
         }
 
-        private String getMessage(){
+        private String getMessage() {
             return this.message;
         }
 
@@ -145,9 +146,10 @@ class LongTimeAsyncCallService {
     private String id;
     private String timestamp;
 
-    public LongTimeAsyncCallService() {}
+    public LongTimeAsyncCallService() {
+    }
 
-    public LongTimeAsyncCallService(final String id,final String timestamp) {
+    public LongTimeAsyncCallService(final String id, final String timestamp) {
         this.id = id;
         this.timestamp = timestamp;
     }
@@ -159,8 +161,8 @@ class LongTimeAsyncCallService {
                 callback.callback("启动成功");
                 long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
-                if(id!=null && timestamp != null){
-                    find.start(id,timestamp);
+                if (id != null && timestamp != null) {
+                    find.start(id, timestamp);
                 }
                 long endTime = System.currentTimeMillis();
                 System.out.println("处理时间:" + (endTime - startTime) / 1000 + "s");

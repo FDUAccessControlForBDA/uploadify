@@ -18,8 +18,8 @@ public class UserDaoImp implements UserDao{
         long rst = 0;
         //添加用户到数据库
         Session session = sessionFactory.getCurrentSession();
-        String hql = "from UserPO user where user.userName = ? and user.password = ?";
-        Query query = session.createQuery(hql).setParameter(0,userName).setParameter(1,password);
+        String hql = "from UserPO user where user.userName = ?";
+        Query query = session.createQuery(hql).setParameter(0,userName);
         if(query.list().size()<=0){
             UserPO user = new UserPO(userName,password);
             rst = (Long) session.save(user);

@@ -222,6 +222,7 @@ public class Finder implements Serializable {
         StringBuilder ret = new StringBuilder();
         StringBuilder detail = new StringBuilder();
         boolean flag = false;
+        Set<String> typeList = new HashSet<>();
         for (int i = 1; i < count; i++) {
             String element = splitx[i];
             String returnFlag = matchers.match(element);
