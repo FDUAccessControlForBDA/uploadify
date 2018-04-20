@@ -45,7 +45,8 @@ public class PdfConverter implements Converter, Serializable {
         try {
 
             // 初始化pdf reader
-            PDFParser pdfParser = new PDFParser(new RandomAccessFile(new File(fileName), "r"));
+            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(fileName),"r");
+            PDFParser pdfParser = new PDFParser(randomAccessFile);
             pdfParser.parse();
             PDDocument pdDocument = new PDDocument(pdfParser.getDocument());
             PDFTextStripper pdfTextStripper = new PDFLayoutTextStripper();
@@ -94,6 +95,7 @@ public class PdfConverter implements Converter, Serializable {
             }
             lines = j - 1;
             writer.close();
+            randomAccessFile.close();//关闭
         } catch (IOException e) {
             e.printStackTrace();
         }

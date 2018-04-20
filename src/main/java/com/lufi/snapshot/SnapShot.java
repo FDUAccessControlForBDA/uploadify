@@ -2,6 +2,7 @@ package com.lufi.snapshot;
 
 import com.lufi.matching.MatchInfo;
 import com.lufi.preproccess.Converter;
+import com.lufi.services.model.DataInfo;
 import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
 
@@ -25,10 +26,11 @@ public class SnapShot implements Serializable {
 
     // 根据matching获取的匹配到的对象信息和预处理时源文件和检测文件的mapping关系生成报告
     // 返回report的路径
-    public String getReport(ArrayList<MatchInfo> matchList, Converter con) throws IOException {
+    public String getReport(ArrayList<MatchInfo> matchList, Converter con, DataInfo dataInfo,
+                            final String id, final String timestamp) throws IOException {
         converter = con;
 
-        String buffer;
+        StringBuilder buffer = new StringBuilder();
         String splitLine = "########################################################" + System.getProperty("line.separator");
 
         // 获取文件的元数据信息
@@ -37,26 +39,30 @@ public class SnapShot implements Serializable {
         long fileSize = con.getSize();
 
         // 初始化输出文件
-        reportName = FilenameUtils.getFullPath(fileName) + FilenameUtils.getBaseName(fileName) + "_report.txt";
-        //File reportFile = new File(reportName);
+        reportName = Constants.ADDRESS_STORE + id + timestamp + ".txt";
         BufferedWriter writer = null;
-        java.io.FileOutputStream writerStream = new java.io.FileOutputStream(reportName);
-        //writer = new java.io.BufferedWriter(new java.io.OutputStreamWriter(writerStream, "UTF-8"));
+        FileOutputStream writerStream = new FileOutputStream(reportName,true);
 
         try {
-            buffer = splitLine
-                    + "#文件名：" + fileName + System.getProperty("line.separator")
-                    + "#文件类型：" + type + System.getProperty("line.separator")
-                    + "#文件大小：" + fileSize + "字节" + System.getProperty("line.separator")
-                    + "#隐私信息所占比（行数/总行数）：" + ((float) matchList.size() * 100 / con.getLines()) + "%" + System.getProperty("line.separator")
-                    + splitLine
-                    + "详细信息如下" + System.getProperty("line.separator");
+            buffer.append(splitLine)
+                    .append("#文件名：").append(fileName).append(System.getProperty("line.separator"))
+                    .append("#文件类型：").append(type).append(System.getProperty("line.separator"))
+                    .append("#文件大小：").append(fileSize)
+                    .append("字节").append(System.getProperty("line.separator"))
+                    .append("#隐私信息所占比（行数/总行数）：").append((float) matchList.size() * 100 / con.getLines())
+                    .append("%").append(System.getProperty("line.separator")).append(splitLine)
+                    .append("详细信息如下").append(System.getProperty("line.separator"));
+            //TODO;
 
-            writer = new java.io.BufferedWriter(new java.io.OutputStreamWriter(writerStream, "UTF-8"));
-            writer.write(buffer);
+            writer = new BufferedWriter(new OutputStreamWriter(writerStream, "UTF-8"));
+            writer.write(buffer.toString());
             for (MatchInfo m : matchList) {
-                buffer = getLocationInfo(m.getLocation()) + "检测到-->" + m.getType() + " --> " + m.getDetail() + System.getProperty("line.separator");
-                writer.write(buffer);
+                //清空buffer
+                buffer.setLength(0);
+                buffer.append(getLocationInfo(m.getLocation()))
+                        .append("检测到-->").append(m.getType())
+                        .append(" --> ").append(m.getDetail()).append(System.getProperty("line.separator"));
+                writer.write(buffer.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();

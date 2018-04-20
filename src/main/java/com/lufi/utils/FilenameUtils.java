@@ -534,7 +534,7 @@ public class FilenameUtils {
      * @param canonicalChild  the file to consider as the child.
      * @return true is the candidate leaf is under by the specified composite. False otherwise.
      * @throws IOException if an IO error occurs while checking the files.
-     * @see //FileUtils#directoryContains(File, File)//TODO
+     * @see //FileUtils#directoryContains(File, File)
      * @since 2.2
      */
     public static boolean directoryContains(final String canonicalParent, final String canonicalChild)

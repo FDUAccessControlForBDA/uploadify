@@ -28,4 +28,8 @@ public class Constants {
     public static final String ADDRESS_STORE="C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\store\\";
     public static final String ADDRESS_FILES="C:\\Projects\\IdeaProjects\\uploadify\\src\\main\\files\\";
 
+    public static final String ROCKETMQ_NAMESRV="10.141.211.81:9876";
+    public static final String ROCKETMQ_TOPIC="topic";
+    public static final String ROCKETMQ_TAG="tag";
+
 }

@@ -5,24 +5,31 @@ import com.lufi.services.service.LogService;
 import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
 import com.lufi.utils.TimerUtil;
-import org.apache.commons.io.FileUtils;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 
 @Controller
@@ -31,6 +38,8 @@ public class FinderController {
     @Autowired
     private LogService logService;
 
+    private final BlockingQueue<String> queue = new LinkedBlockingDeque<>();
+
     @GetMapping("/test")
     public String page() {
         return "test";
@@ -38,36 +47,49 @@ public class FinderController {
 
     @GetMapping("asynctask")
     @ResponseBody
-    public DeferredResult<String> asyncTask(@RequestParam(value = "fileName") String fileName) {
+    public DeferredResult<String> asyncTask(@RequestParam(value = "id") String id,
+                                            @RequestParam(value = "timestamp") String timestamp) {
         DeferredResult<String> deferredResult = new DeferredResult<>();
         System.out.println("提交任务");
-        LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService(fileName);
+        //启动消费者
+        check(id,timestamp);
+        LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService(id,timestamp);
         longTimeAsyncCallService.makeRemoteCallAndUnknownWhenFinish(new LongTermTaskCallback() {
             @Override
-            public void callback(Object result) {
-                String ret = "提交任务完成";
-                deferredResult.setResult(ret);
+            public void callback(String result) {
+                deferredResult.setResult(result);
             }
         });
 
         return deferredResult;
     }
 
-    @GetMapping("check")
+    public void check(@RequestParam(value = "id") String id,
+                        @RequestParam(value = "timestamp") String timestamp) {
+        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("PushConsumer_sym");
+        consumer.setNamesrvAddr(Constants.ROCKETMQ_NAMESRV);
+
+        try {
+            consumer.subscribe(id,timestamp);
+            consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+
+            MessageListener listener = new MessageListener();
+            consumer.registerMessageListener(listener);
+
+            consumer.start();
+            System.out.println("消费者启动成功");
+        } catch (Exception e) {
+            System.out.println("消费者订阅消息失败");
+            e.printStackTrace();
+        }
+    }
+
+    @GetMapping("fetch")
     @ResponseBody
-    public DeferredResult<String> check() {
-        DeferredResult<String> deferredResult = new DeferredResult<>();
-        LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService();
+    public String fetch(@RequestParam(value = "id") String id,
+                        @RequestParam(value = "timestamp") String timestamp) {
 
-        longTimeAsyncCallService.checkAsyncTaskCompleted(new LongTermTaskCallback() {
-            @Override
-            public void callback(Object result) {
-                String ret = "检测到任务完成";
-                deferredResult.setResult(ret);
-            }
-        });
-
-        return deferredResult;
+        return  queue.poll();
     }
 
     @RequestMapping(value = "/download")
@@ -92,85 +114,57 @@ public class FinderController {
             logService.addLog(fileName, null, Constants.FLAG_INVALID, TimerUtil.getCurrentTime());
         }
     }
+
+    class MessageListener implements MessageListenerConcurrently{
+        private String message;
+        @Override
+        public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> list, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+            String message = new String(list.get(0).getBody());
+            queue.add(message);
+            System.out.println(message);
+            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+        }
+
+        private String getMessage(){
+            return this.message;
+        }
+
+    }
 }
 
 interface LongTermTaskCallback {
-    void callback(Object result);
+    void callback(String result);
 }
 
 class LongTimeAsyncCallService {
-
-    @Autowired
-    private LogService logService;
 
     private int CorePoolSize = 4;
     private String flagFilePath = Constants.ADDRESS_FILES + "flag.txt";
     private Random random = new Random();
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(CorePoolSize);
-    private String uploadFilePath;
+    private String id;
+    private String timestamp;
 
     public LongTimeAsyncCallService() {}
 
-    public LongTimeAsyncCallService(final String uploadFilePath) {
-        this.uploadFilePath = Constants.ADDRESS_STORE + uploadFilePath;
+    public LongTimeAsyncCallService(final String id,final String timestamp) {
+        this.id = id;
+        this.timestamp = timestamp;
     }
 
     public void makeRemoteCallAndUnknownWhenFinish(LongTermTaskCallback callback) {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                System.out.println("开始任务");
+                callback.callback("启动成功");
                 long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
-                if (uploadFilePath != null) {
-                    System.out.println(uploadFilePath);
-                    find.input(uploadFilePath);
-                }
-                find.convert();
-                find.process();
-                find.snapshot();
-                find.output();
-                try {
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                            new FileOutputStream(flagFilePath)));
-                    writer.write(true + "\n");
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(id!=null && timestamp != null){
+                    find.start(id,timestamp);
                 }
                 long endTime = System.currentTimeMillis();
                 System.out.println("处理时间:" + (endTime - startTime) / 1000 + "s");
             }
         }, 1, TimeUnit.SECONDS);
-    }
-
-    public void checkAsyncTaskCompleted(LongTermTaskCallback callback) {
-        scheduler.schedule(new Runnable() {
-            @Override
-            public void run() {
-                File file = new File(flagFilePath);
-                try {
-                    if (file.exists()) {
-                        BufferedReader reader = new BufferedReader(new FileReader(flagFilePath));
-                        String line = reader.readLine();
-                        while (line != null) {
-                            if (line.equals("true")) {
-                                callback.callback("长时间异步调用完成.");
-
-                                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                                        new FileOutputStream(flagFilePath)));
-                                writer.write(false + "\n");
-                                writer.close();
-                                break;
-                            }
-                            line = reader.readLine();
-                        }
-                        reader.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, 0, TimeUnit.SECONDS);
     }
 }
