@@ -50,8 +50,6 @@ public class Finder implements Serializable {
         snapShot = new SnapShot();
         dataInfo = new DataInfo();
         tmpDataInfo = new DataInfo();
-        producer = new DefaultMQProducer("lufiproducer");
-        producer.setNamesrvAddr("10.141.211.81:9876");
         conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
         sc = new JavaSparkContext(conf);
         matchers = new Matchers();
@@ -78,9 +76,9 @@ public class Finder implements Serializable {
     public void start(final String id, final String timestamp) {
         try {
             //消费者启动
+            producer = new DefaultMQProducer(id+timestamp);
+            producer.setNamesrvAddr("10.141.211.81:9876");
             producer.start();
-            mkDir(id, timestamp);
-            copyFilesToDir(id, timestamp);
             List<String> pathList = getFilesUnderDir(id, timestamp);
             for (String path : pathList) {
                 input(path);
@@ -117,44 +115,7 @@ public class Finder implements Serializable {
             e.printStackTrace();
             return null;
         }
-
-        System.out.println("------文件输入成功！------");
-
         return paths;
-    }
-
-    public static Boolean copyFilesToDir(final String id, final String timestamp) {
-        try {
-            String copyDirName = "test\\";
-            String dirName = id + "_" + timestamp + "\\";
-            File copyDir = new File(Constants.ADDRESS_TMP + copyDirName);
-            File dir = new File(Constants.ADDRESS_TMP + dirName);
-            if (copyDir.exists() && dir.exists()) {
-                Collection<File> files = FileUtils.listFiles(copyDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
-                for (File file : files) {
-                    FileUtils.copyFileToDirectory(file, dir);
-                }
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    public static String mkDir(final String id, final String timestamp) {
-        String folderName = id + "_" + timestamp + "\\";//用户id-时间戳
-        File folder = new File(Constants.ADDRESS_TMP + folderName);
-        try {
-            if (!folder.exists()) {
-                FileUtils.forceMkdir(folder);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return folderName;
     }
 
     public void input(final String path) {
@@ -163,7 +124,7 @@ public class Finder implements Serializable {
         } else {
             filePath = path;
         }
-        System.out.println("------文件输入成功！------");
+        System.out.println("------"+filePath+"文件输入成功！------");
     }
 
     public boolean convert() {
@@ -175,7 +136,7 @@ public class Finder implements Serializable {
         }
         converter.convert(filePath);
         convertedFilePath = converter.getNewFileName();
-        System.out.println("------文件预处理成功！------");
+        System.out.println("------"+filePath+"文件预处理成功！------");
         return true;
     }
 
@@ -192,16 +153,19 @@ public class Finder implements Serializable {
             for (int i = 0; i < size; i++) {
                 matchx(output.get(i));
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - preTime == 1000 || i == size - 1) {
+                if (currentTime - preTime >= 1000 || i == size - 1) {
                     if (i == size - 1) {
                         dataInfo.flag = true;
                         dataInfo.reportName = id+timestamp+Constants.SUFFIX_REPORT;
                     }
 
+                    preTime = currentTime;
+
                     Date date = new Date();
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss:SS");
                     dataInfo.date = ft.format(date);
                     String msgData = gson.toJson(dataInfo);
+                    System.out.println("Finder:"+msgData);
                     Message msg = new Message(id, timestamp, msgData.getBytes());
                     producer.sendOneway(msg);
                 }
@@ -295,7 +259,10 @@ public class Finder implements Serializable {
 
     public void deleteFile(final String id,final String timestamp) {
         try {
-            FileUtils.deleteDirectory(FileUtils.getFile(Constants.ADDRESS_TMP+id+"_"+timestamp+"\\"));
+            File dir = new File(Constants.ADDRESS_TMP+id+"_"+timestamp);
+            if(dir.exists()){
+                FileUtils.deleteDirectory(dir);
+            }
             System.out.println("------"+id+"_"+timestamp+"目录删除成功！------");
         } catch (IOException e) {
             e.printStackTrace();

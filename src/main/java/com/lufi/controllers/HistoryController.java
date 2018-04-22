@@ -9,6 +9,7 @@ import com.lufi.services.service.LogService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Controller
 public class HistoryController {
     @Autowired
     private LogService logService;
@@ -29,8 +31,7 @@ public class HistoryController {
      */
     @GetMapping("getHistories")
     @ResponseBody
-    public Map<String, Object> getHistories(@RequestParam(value = "userId") String userId, HttpServletResponse response){
-        response.addHeader("Access-Control-Allow-Origin", "*");
+    public Map<String, Object> getHistories(@RequestParam(value = "userId") String userId){
         Map<String, Object> rm = new HashMap<>();
         try{
             List<DetectHistoryPO> histories = logService.getHistories(userId);
@@ -61,14 +62,12 @@ public class HistoryController {
      */
     @GetMapping("getHistory")
     @ResponseBody
-    public Map<String, Object> getHistory(@RequestParam(value = "historyId") String historyId, HttpServletResponse response){
-        response.addHeader("Access-Control-Allow-Origin", "*");
+    public Map<String, Object> getHistory(@RequestParam(value = "historyId") String historyId){
         Map<String, Object> rm = new HashMap<>();
         try{
             DetectHistoryPO dh = logService.getHistory(historyId);
             JSONObject jsonOb = new JSONObject();
             if(dh != null){
-
                 jsonOb.put("id", dh.getId());
                 jsonOb.put("files", dh.getDetect_files());
                 jsonOb.put("date", dh.getDetect_time());
@@ -91,8 +90,7 @@ public class HistoryController {
      */
     @PostMapping("deleteHistory")
     @ResponseBody
-    public Boolean deleteHistory(@RequestParam(value = "historyId") String historyId, HttpServletResponse response){
-        response.addHeader("Access-Control-Allow-Origin", "*");
+    public Boolean deleteHistory(@RequestParam(value = "historyId") String historyId){
         if(logService.deleteHistory(historyId) == 1)
             return true;
         return false;

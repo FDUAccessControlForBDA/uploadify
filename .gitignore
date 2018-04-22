@@ -34,3 +34,5 @@ src/test/resources/
 src/test/scala/
 target/
 /src/main/java/com/lufi/test/
+/src/main/tmp/
+/src/main/store/

@@ -1,5 +1,6 @@
 package com.lufi.controllers;
 
+import com.google.gson.JsonObject;
 import com.lufi.core.Finder;
 import com.lufi.services.service.LogService;
 import com.lufi.utils.Constants;
@@ -13,10 +14,7 @@ import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,34 +37,27 @@ public class FinderController {
     private LogService logService;
 
     private final BlockingQueue<String> queue = new LinkedBlockingDeque<>();
-
-    @GetMapping("/test")
-    public String page() {
-        return "test";
-    }
+//
+//    @GetMapping("/test")
+//    public String page() {
+//        return "test";
+//    }
 
     @GetMapping("asynctask")
     @ResponseBody
-    public DeferredResult<String> asyncTask(@RequestParam(value = "id") String id,
+    public Boolean asyncTask(@RequestParam(value = "id") String id,
                                             @RequestParam(value = "timestamp") String timestamp) {
         DeferredResult<String> deferredResult = new DeferredResult<>();
         System.out.println("提交任务");
         //启动消费者
         check(id, timestamp);
         LongTimeAsyncCallService longTimeAsyncCallService = new LongTimeAsyncCallService(id, timestamp);
-        longTimeAsyncCallService.makeRemoteCallAndUnknownWhenFinish(new LongTermTaskCallback() {
-            @Override
-            public void callback(String result) {
-                deferredResult.setResult(result);
-            }
-        });
-
-        return deferredResult;
+        longTimeAsyncCallService.makeRemoteCallAndUnknownWhenFinish();
+        return true;
     }
 
-    public void check(@RequestParam(value = "id") String id,
-                      @RequestParam(value = "timestamp") String timestamp) {
-        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("PushConsumer_sym");
+    public void check(String id, String timestamp) {
+        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(id+timestamp);
         consumer.setNamesrvAddr(Constants.ROCKETMQ_NAMESRV);
 
         try {
@@ -88,13 +79,13 @@ public class FinderController {
     @ResponseBody
     public String fetch(@RequestParam(value = "id") String id,
                         @RequestParam(value = "timestamp") String timestamp) {
-
-        return queue.poll();
+        String message = queue.poll();
+        System.out.println("fetch:"+message);
+        return message;
     }
 
-    @RequestMapping(value = "/download")
-    public void downloadResource(HttpServletRequest request, HttpServletResponse response) {
-        String fileName = FilenameUtils.getBaseName(request.getParameter("fileName"));
+    @PostMapping("download")
+    public void downloadResource(@RequestParam(value = "fileName") String fileName, HttpServletResponse response) {
         Path file = Paths.get(Constants.ADDRESS_STORE, fileName);
         if (Files.exists(file)) {
             response.setContentType("text/plain");
@@ -118,7 +109,8 @@ public class FinderController {
         private String message;
 
         @Override
-        public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> list, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+        public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> list,
+                                                        ConsumeConcurrentlyContext consumeConcurrentlyContext) {
             String message = new String(list.get(0).getBody());
             queue.add(message);
             System.out.println(message);
@@ -153,11 +145,10 @@ class LongTimeAsyncCallService {
         this.timestamp = timestamp;
     }
 
-    public void makeRemoteCallAndUnknownWhenFinish(LongTermTaskCallback callback) {
+    public void makeRemoteCallAndUnknownWhenFinish() {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                callback.callback("success");
                 long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
                 if (id != null && timestamp != null) {
