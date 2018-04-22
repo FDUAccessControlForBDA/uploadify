@@ -111,7 +111,6 @@ public class FinderController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            logService.addLog(fileName, null, Constants.FLAG_INVALID, TimerUtil.getCurrentTime());
         }
     }
 

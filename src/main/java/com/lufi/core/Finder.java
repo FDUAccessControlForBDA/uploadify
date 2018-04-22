@@ -195,7 +195,9 @@ public class Finder implements Serializable {
                 if (currentTime - preTime == 1000 || i == size - 1) {
                     if (i == size - 1) {
                         dataInfo.flag = true;
+                        dataInfo.reportName = id+timestamp+Constants.SUFFIX_REPORT;
                     }
+
                     Date date = new Date();
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss:SS");
                     dataInfo.date = ft.format(date);

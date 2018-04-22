@@ -9,9 +9,7 @@
        http://www.springframework.org/schema/context
        http://www.springframework.org/schema/context/spring-context.xsd
        http://www.springframework.org/schema/mvc
-       http://www.springframework.org/schema/mvc/spring-mvc.xsd
-       http://www.springframework.org/schema/task
-       http://www.springframework.org/schema/task/spring-task.xsd">
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <!-- 配置自动扫描的包
         除了applicationContext.xml之外，这里要重写一遍，主要是配置默认的servlet-->
@@ -33,6 +31,7 @@
 
     <!-- 配置上传文件大小 -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- TODO修改上传文件大小 -->
         <property name="maxUploadSize" value="100000000000"/>
         <property name="defaultEncoding" value="UTF-8"/>
     </bean>
@@ -49,11 +48,4 @@
     <!--这里单独扫描一遍controller-->
     <context:component-scan base-package="com.lufi.controllers" />
     
-    <!-- 定时任务支持 -->
-    <bean id="myTask" class="com.lufi.services.service.DeleteLogTask"/>
-    <task:scheduled-tasks>
-        <!--<task:scheduled ref="myTask" method="deleteLog" cron="0 */1 * * * *"/>-->
-        <task:scheduled ref="myTask" method="deleteLog" cron="0 * * * * */1"/>
-    </task:scheduled-tasks>
-
 </beans>

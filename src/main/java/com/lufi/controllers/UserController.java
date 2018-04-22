@@ -59,7 +59,7 @@ public class UserController {
             }
         }catch (Exception e){
             e.printStackTrace();
-            rm.put("flag", "false");
+            rm.put("result", "false");
             rm.put("message", "server error");
         }
 

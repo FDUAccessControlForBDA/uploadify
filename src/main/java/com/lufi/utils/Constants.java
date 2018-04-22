@@ -12,6 +12,8 @@ public class Constants {
     public static final String SUFFIX_DOC = "doc";
     public static final String SUFFIX_DOCX = "docx";
 
+    public static final String SUFFIX_REPORT = ".txt";
+
     public static final String PHONE = "电话号码";
     public static final String ADDRESS = "地址";
     public static final String ID = "身份证号";
