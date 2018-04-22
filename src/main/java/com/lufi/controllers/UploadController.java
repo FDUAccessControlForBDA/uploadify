@@ -29,7 +29,7 @@ public class UploadController {
     public String upload (@RequestParam(value = "files") MultipartFile [] files,
                            @RequestParam(value = "id") String id,
                            HttpServletRequest request, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Origin", "*");
         //TODO 增加"用户名+时间戳"的文件目录
         try {
             String timestamp = Long.toString(System.currentTimeMillis());//时间戳
