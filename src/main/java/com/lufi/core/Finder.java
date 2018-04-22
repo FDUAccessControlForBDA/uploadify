@@ -229,10 +229,9 @@ public class Finder implements Serializable {
             String element = splitx[i];
             String returnFlag = matchers.match(element);
             if (returnFlag != null) {
-                ret.append(returnFlag).append(",");
+                typeList.add(returnFlag);
                 flag = true;
                 detail.append(splitx[i]).append(",");
-
                 dataInfo.priv++;
                 tmpDataInfo.priv++;
 
@@ -270,6 +269,9 @@ public class Finder implements Serializable {
                 }
             }
         }
+
+        for(String type: typeList)
+            ret.append(type).append(",");
 
         if (flag) {
             MatchInfo info = new MatchInfo();

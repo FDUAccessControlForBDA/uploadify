@@ -50,7 +50,7 @@ public class SnapShot implements Serializable {
                     .append("#文件类型：").append(type).append(System.getProperty("line.separator"))
                     .append("#文件大小：").append(fileSize)
                     .append("字节").append(System.getProperty("line.separator"))
-                    .append("#隐私信息所占比（行数/总行数）：").append((float) matchList.size() * 100 / con.getLines())
+                    .append("#隐私信息所占比：").append((float) dataInfo.priv * 100 / dataInfo.sum)
                     .append("%").append(System.getProperty("line.separator")).append(splitLine)
                     .append("详细信息如下").append(System.getProperty("line.separator"));
             //TODO;

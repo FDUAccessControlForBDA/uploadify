@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,8 @@ public class HistoryController {
      */
     @GetMapping("getHistories")
     @ResponseBody
-    public Map<String, Object> getHistories(@RequestParam(value = "userId") String userId){
+    public Map<String, Object> getHistories(@RequestParam(value = "userId") String userId, HttpServletResponse response){
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Map<String, Object> rm = new HashMap<>();
         try{
             List<DetectHistoryPO> histories = logService.getHistories(userId);
@@ -59,7 +61,8 @@ public class HistoryController {
      */
     @GetMapping("getHistory")
     @ResponseBody
-    public Map<String, Object> getHistory(@RequestParam(value = "historyId") String historyId){
+    public Map<String, Object> getHistory(@RequestParam(value = "historyId") String historyId, HttpServletResponse response){
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Map<String, Object> rm = new HashMap<>();
         try{
             DetectHistoryPO dh = logService.getHistory(historyId);
@@ -88,7 +91,8 @@ public class HistoryController {
      */
     @PostMapping("deleteHistory")
     @ResponseBody
-    public Boolean deleteHistory(@RequestParam(value = "historyId") String historyId){
+    public Boolean deleteHistory(@RequestParam(value = "historyId") String historyId, HttpServletResponse response){
+        response.addHeader("Access-Control-Allow-Origin", "*");
         if(logService.deleteHistory(historyId) == 1)
             return true;
         return false;

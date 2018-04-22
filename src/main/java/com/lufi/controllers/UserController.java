@@ -21,7 +21,7 @@ public class UserController {
     public Map<String, Object> signup(@RequestParam(value = "userName") String userName,
                                       @RequestParam(value = "password") String password,
                                       HttpServletRequest request, HttpServletResponse response){
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Map<String, Object> rm = new HashMap<String, Object>();
         try{
             long ret = userService.signup(userName,password);
@@ -46,7 +46,7 @@ public class UserController {
     public Map<String, Object> signin(@RequestParam(value = "userName") String userName,
                                       @RequestParam(value = "password") String password,
                                       HttpServletRequest request, HttpServletResponse response){
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Map<String, Object> rm = new HashMap<String, Object>();
         try{
             long ret = userService.signin(userName,password);
