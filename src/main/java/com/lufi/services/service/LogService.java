@@ -40,4 +40,9 @@ public class LogService {
     public long deleteHistory(String historyId) {
         return logDao.deleteHistory(historyId);
     }
+
+    @Transactional
+    public long addHistory(String userId, String detectFiles, String reportPath, String detail){
+        return logDao.addHistory(userId,detectFiles,reportPath,detail);
+    }
 }

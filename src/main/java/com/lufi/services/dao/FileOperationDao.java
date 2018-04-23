@@ -11,4 +11,5 @@ public interface FileOperationDao {
     List<DetectHistoryPO> getHistories(String userId);
     DetectHistoryPO getHistory(String historyId);
     long deleteHistory(String historyId);
+    long addHistory(String userId, String detectFiles, String reportPath, String detail);
 }

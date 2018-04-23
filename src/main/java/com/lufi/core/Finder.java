@@ -7,9 +7,11 @@ import com.lufi.matching.matchers.*;
 import com.lufi.preproccess.Converter;
 import com.lufi.preproccess.ConverterFactory;
 import com.lufi.services.model.DataInfo;
+import com.lufi.services.service.LogService;
 import com.lufi.snapshot.SnapShot;
 import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
+import org.apache.commons.compress.compressors.FileNameUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -42,6 +44,7 @@ public class Finder implements Serializable {
     private SnapShot snapShot = null;
     private static int index = 0;
     private static long processTime = 0;
+    private LogService logService;
 
     private static volatile Finder INSTANCE = null;
 
@@ -52,6 +55,7 @@ public class Finder implements Serializable {
         tmpDataInfo = new DataInfo();
         conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
         sc = new JavaSparkContext(conf);
+        logService = new LogService();
         matchers = new Matchers();
         matchers.addMatcher(IdMatcher.getInstance());
         matchers.addMatcher(PhoneMatcher.getInstance());
@@ -80,13 +84,18 @@ public class Finder implements Serializable {
             producer.setNamesrvAddr("10.141.211.81:9876");
             producer.start();
             List<String> pathList = getFilesUnderDir(id, timestamp);
+            String paths  = "";
             for (String path : pathList) {
+                paths += FilenameUtils.getName(path) + "|";
                 input(path);
                 convert();
                 process(id, timestamp);
                 snapshot(id,timestamp);
                 output();
             }
+            paths = paths.substring(0, paths.length() - 1);
+            logService.addHistory(id, paths, outputPath, dataInfo.toString());
+
             deleteFile(id,timestamp);
 
             producer.shutdown();
