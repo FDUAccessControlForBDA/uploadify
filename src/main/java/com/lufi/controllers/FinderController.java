@@ -1,7 +1,9 @@
 package com.lufi.controllers;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lufi.core.Finder;
+import com.lufi.services.model.DataInfo;
 import com.lufi.services.service.LogService;
 import com.lufi.utils.Constants;
 import com.lufi.utils.FilenameUtils;
@@ -12,10 +14,13 @@ import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import sun.rmi.runtime.Log;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +30,9 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.*;
 
@@ -37,11 +44,6 @@ public class FinderController {
     private LogService logService;
 
     private final BlockingQueue<String> queue = new LinkedBlockingDeque<>();
-//
-//    @GetMapping("/test")
-//    public String page() {
-//        return "test";
-//    }
 
     @GetMapping("asynctask")
     @ResponseBody
@@ -80,7 +82,12 @@ public class FinderController {
     public String fetch(@RequestParam(value = "id") String id,
                         @RequestParam(value = "timestamp") String timestamp) {
         String message = queue.poll();
-        System.out.println("fetch:"+message);
+        if(message.contains("true")){
+
+            Gson gson = new Gson();
+            DataInfo dataInfo = gson.fromJson(message,DataInfo.class);
+            logService.addHistory(id,dataInfo.toString());
+        }
         return message;
     }
 
@@ -128,11 +135,13 @@ interface LongTermTaskCallback {
     void callback(String result);
 }
 
+@Component
 class LongTimeAsyncCallService {
 
+    @Autowired
+    private LogService logService;
+
     private int CorePoolSize = 4;
-    private String flagFilePath = Constants.ADDRESS_FILES + "flag.txt";
-    private Random random = new Random();
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(CorePoolSize);
     private String id;
     private String timestamp;
@@ -149,13 +158,10 @@ class LongTimeAsyncCallService {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                long startTime = System.currentTimeMillis();
                 Finder find = Finder.getInstance();
                 if (id != null && timestamp != null) {
                     find.start(id, timestamp);
                 }
-                long endTime = System.currentTimeMillis();
-                System.out.println("处理时间:" + (endTime - startTime) / 1000 + "s");
             }
         }, 1, TimeUnit.SECONDS);
     }

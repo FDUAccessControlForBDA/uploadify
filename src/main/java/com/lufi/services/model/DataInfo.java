@@ -10,7 +10,7 @@ public class DataInfo {
     public long mac = 0;
     public long address = 0;
     public long id = 0;
-    public String date;
+    public String paths = null;
     public String reportName = null;
     public boolean flag = false;
 

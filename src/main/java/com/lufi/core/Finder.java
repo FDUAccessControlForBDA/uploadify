@@ -19,6 +19,7 @@ import org.apache.rocketmq.common.message.Message;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,9 +28,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Finder implements Serializable {
+
     private static Matchers matchers = new Matchers();
-    private ArrayList<MatchInfo> matchInfoList;
-    private static ArrayList<String> filePathList = new ArrayList<>();
+    private static ArrayList<MatchInfo> matchInfoList;
+    private static ArrayList<String> filePathList;
     private static String filePath = null;
     private String convertedFilePath = null;
     private String outputPath = null;
@@ -37,25 +39,20 @@ public class Finder implements Serializable {
     private DataInfo dataInfo;
     private DataInfo tmpDataInfo;
     private DefaultMQProducer producer = null;
-    private long preTime = 0;
 
-    private static SparkConf conf = null;
     private static JavaSparkContext sc = null;
     private SnapShot snapShot = null;
-    private static int index = 0;
-    private static long processTime = 0;
-    private LogService logService;
 
     private static volatile Finder INSTANCE = null;
 
     private Finder() {
         matchInfoList = new ArrayList<>();
+        filePathList = new ArrayList<>();
         snapShot = new SnapShot();
         dataInfo = new DataInfo();
         tmpDataInfo = new DataInfo();
-        conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
+        SparkConf conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
         sc = new JavaSparkContext(conf);
-        logService = new LogService();
         matchers = new Matchers();
         matchers.addMatcher(IdMatcher.getInstance());
         matchers.addMatcher(PhoneMatcher.getInstance());
@@ -63,7 +60,6 @@ public class Finder implements Serializable {
         matchers.addMatcher(MailMatcher.getInstance());
         matchers.addMatcher(IpMatcher.getInstance());
         matchers.addMatcher(MacMatcher.getInstance());
-//        matchers.addMatcher(AddressMatcher.getInstance());
     }
 
     public static Finder getInstance() {
@@ -83,19 +79,14 @@ public class Finder implements Serializable {
             producer = new DefaultMQProducer(id+timestamp);
             producer.setNamesrvAddr("10.141.211.81:9876");
             producer.start();
-            List<String> pathList = getFilesUnderDir(id, timestamp);
-            String paths  = "";
-            for (String path : pathList) {
-                paths += FilenameUtils.getName(path) + "|";
+            filePathList = getFilesUnderDir(id, timestamp);
+            for (String path : filePathList) {
                 input(path);
                 convert();
                 process(id, timestamp);
                 snapshot(id,timestamp);
                 output();
             }
-            paths = paths.substring(0, paths.length() - 1);
-            logService.addHistory(id, paths, outputPath, dataInfo.toString());
-
             deleteFile(id,timestamp);
 
             producer.shutdown();
@@ -107,8 +98,9 @@ public class Finder implements Serializable {
         }
     }
 
-    public List<String> getFilesUnderDir(final String id, final String timestamp) {
-        List<String> paths = new ArrayList<>();
+
+    public ArrayList<String> getFilesUnderDir(final String id, final String timestamp) {
+        ArrayList<String> paths = new ArrayList<>();
         try {
             String dirName = id + "_" + timestamp + "\\";
             File dir = new File(Constants.ADDRESS_TMP + dirName);
@@ -158,7 +150,7 @@ public class Finder implements Serializable {
         Gson gson = new Gson();
         try {
             int size = output.size();
-            preTime = System.currentTimeMillis();
+            long preTime = System.currentTimeMillis();
             for (int i = 0; i < size; i++) {
                 matchx(output.get(i));
                 long currentTime = System.currentTimeMillis();
@@ -166,13 +158,10 @@ public class Finder implements Serializable {
                     if (i == size - 1) {
                         dataInfo.flag = true;
                         dataInfo.reportName = id+timestamp+Constants.SUFFIX_REPORT;
+                        dataInfo.paths = getDetails();
                     }
 
                     preTime = currentTime;
-
-                    Date date = new Date();
-                    SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss:SS");
-                    dataInfo.date = ft.format(date);
                     String msgData = gson.toJson(dataInfo);
                     System.out.println("Finder:"+msgData);
                     Message msg = new Message(id, timestamp, msgData.getBytes());
@@ -185,6 +174,18 @@ public class Finder implements Serializable {
         } finally {
             System.out.println("------隐私数据匹配成功！------");
         }
+    }
+
+    public String getDetails(){
+        StringBuilder paths = new StringBuilder();
+        for (String path : filePathList) {
+            paths.append(FilenameUtils.getName(path)).append("|");
+        }
+        if(paths.length() > 0){
+            paths.setLength(paths.length()-1);
+        }
+
+        return paths.toString();
     }
 
     private void matchx(final String x) {
@@ -279,7 +280,6 @@ public class Finder implements Serializable {
     }
 
     public void output() {
-        System.out.println("處理時間:" + processTime / 1000 + "s");
         System.out.println("处理文件类型：" + FilenameUtils.getExtension(filePath));
         System.out.println("输入文件地址：" + filePath);
         System.out.println("转换后文件地址：" + convertedFilePath);
