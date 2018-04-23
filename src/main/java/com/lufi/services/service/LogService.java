@@ -42,7 +42,7 @@ public class LogService {
     }
 
     @Transactional
-    public long addHistory(String userId, String detectFiles, String reportPath, String detail){
-        return logDao.addHistory(userId,detectFiles,reportPath,detail);
+    public long addHistory(String userId, String detail){
+        return logDao.addHistory(userId, detail);
     }
 }
