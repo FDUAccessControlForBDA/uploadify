@@ -70,10 +70,10 @@ public class FileOperationDaoImp implements FileOperationDao {
     }
 
     @Override
-    public long addHistory(String userId, String detectFiles, String reportPath, String detail){
+    public long addHistory(String userId, String detail){
         Session session = sessionFactory.getCurrentSession();
         Timestamp time = TimerUtil.getCurrentTime();
-        DetectHistoryPO detectHistoryPO = new DetectHistoryPO(userId,detectFiles,detail,reportPath,time);
+        DetectHistoryPO detectHistoryPO = new DetectHistoryPO(userId,detail,time);
         long rst = (Long)session.save(detectHistoryPO);
         return rst;
     }

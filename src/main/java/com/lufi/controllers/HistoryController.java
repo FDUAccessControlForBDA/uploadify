@@ -40,7 +40,7 @@ public class HistoryController {
                 for(DetectHistoryPO dh: histories){
                     Map<String, Object> map = new HashMap<>();
                     map.put("id",dh.getId());
-                    map.put("files", dh.getDetect_files());
+                    map.put("detail", dh.getDetect_detail());
                     map.put("date", dh.getDetect_time());
                     jsonArray.put(map);
                 }
@@ -69,10 +69,8 @@ public class HistoryController {
             JSONObject jsonOb = new JSONObject();
             if(dh != null){
                 jsonOb.put("id", dh.getId());
-                jsonOb.put("files", dh.getDetect_files());
                 jsonOb.put("date", dh.getDetect_time());
                 jsonOb.put("detail", dh.getDetect_detail());
-                jsonOb.put("path",dh.getReport_path());
                 rm.put("code","200");
                 rm.put("history", jsonOb.toString());
             }else{
