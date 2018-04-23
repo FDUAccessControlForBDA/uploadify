@@ -35,7 +35,7 @@ public class Finder implements Serializable {
     private String outputPath = null;
     private Converter converter = null;
     private DataInfo dataInfo;
-    private DataInfo tmpDataInfo;
+    private DataInfo tmpDataInfo = null;
     private DefaultMQProducer producer = null;
 
     private static JavaSparkContext sc = null;
@@ -47,8 +47,6 @@ public class Finder implements Serializable {
         matchInfoList = new ArrayList<>();
         filePathList = new ArrayList<>();
         snapShot = new SnapShot();
-        dataInfo = new DataInfo();
-        tmpDataInfo = new DataInfo();
         SparkConf conf = new SparkConf().setAppName("spark").setMaster("local[*]").set("spark.driver.maxResultSize", "20g");
         sc = new JavaSparkContext(conf);
         matchers = new Matchers();
@@ -74,18 +72,26 @@ public class Finder implements Serializable {
     public void start(final String id, final String timestamp) {
         try {
             //消费者启动
-            producer = new DefaultMQProducer(id+timestamp);
+            producer = new DefaultMQProducer(id + timestamp);
             producer.setNamesrvAddr("10.141.211.81:9876");
             producer.start();
+
+            tmpDataInfo = new DataInfo();
+            dataInfo = new DataInfo();
+
             filePathList = getFilesUnderDir(id, timestamp);
             for (String path : filePathList) {
                 input(path);
                 convert();
                 process(id, timestamp);
-                snapshot(id,timestamp);
+                snapshot(id, timestamp);
                 output();
+
+                tmpDataInfo = new DataInfo();
             }
-            deleteFile(id,timestamp);
+            produceLast(id, timestamp);
+
+            deleteFile(id, timestamp);
 
             producer.shutdown();
         } catch (Exception e) {
@@ -95,7 +101,6 @@ public class Finder implements Serializable {
             System.out.println("关闭producer成功");
         }
     }
-
 
     public ArrayList<String> getFilesUnderDir(final String id, final String timestamp) {
         ArrayList<String> paths = new ArrayList<>();
@@ -123,7 +128,7 @@ public class Finder implements Serializable {
         } else {
             filePath = path;
         }
-        System.out.println("------"+filePath+"文件输入成功！------");
+        System.out.println("------" + filePath + "文件输入成功！------");
     }
 
     public boolean convert() {
@@ -135,7 +140,7 @@ public class Finder implements Serializable {
         }
         converter.convert(filePath);
         convertedFilePath = converter.getNewFileName();
-        System.out.println("------"+filePath+"文件预处理成功！------");
+        System.out.println("------" + filePath + "文件预处理成功！------");
         return true;
     }
 
@@ -153,15 +158,10 @@ public class Finder implements Serializable {
                 matchx(output.get(i));
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - preTime >= 1000 || i == size - 1) {
-                    if (i == size - 1) {
-                        dataInfo.flag = true;
-                        dataInfo.reportName = id+timestamp+Constants.SUFFIX_REPORT;
-                        dataInfo.paths = getDetails();
-                    }
-
                     preTime = currentTime;
+                    dataInfo.flag = false;
                     String msgData = gson.toJson(dataInfo);
-                    System.out.println("Finder:"+msgData);
+                    System.out.println("process:" + msgData);
                     Message msg = new Message(id, timestamp, msgData.getBytes());
                     producer.sendOneway(msg);
                 }
@@ -174,13 +174,30 @@ public class Finder implements Serializable {
         }
     }
 
-    public String getDetails(){
+    public void produceLast(final String id, final String timestamp) {
+        dataInfo.flag = true;
+        dataInfo.reportName = id + timestamp + Constants.SUFFIX_REPORT;
+        dataInfo.paths = getDetails();
+
+        Gson gson = new Gson();
+        String msgData = gson.toJson(dataInfo);
+        System.out.println("produceLast:" + msgData);
+        try {
+            Message msg = new Message(id, timestamp, msgData.getBytes());
+            producer.sendOneway(msg);
+        } catch (Exception e) {
+            System.out.println("发送消息失败");
+            e.printStackTrace();
+        }
+    }
+
+    public String getDetails() {
         StringBuilder paths = new StringBuilder();
         for (String path : filePathList) {
             paths.append(FilenameUtils.getName(path)).append("|");
         }
-        if(paths.length() > 0){
-            paths.setLength(paths.length()-1);
+        if (paths.length() > 0) {
+            paths.setLength(paths.length() - 1);
         }
 
         return paths.toString();
@@ -242,7 +259,7 @@ public class Finder implements Serializable {
             }
         }
 
-        for(String type: typeList)
+        for (String type : typeList)
             ret.append(type).append(",");
 
         if (flag) {
@@ -254,7 +271,7 @@ public class Finder implements Serializable {
         }
     }
 
-    public void snapshot(final String id,final String timestamp) {
+    public void snapshot(final String id, final String timestamp) {
         try {
             snapShot.getReport(matchInfoList, converter, tmpDataInfo, id, timestamp);
             outputPath = snapShot.getReportName();
@@ -265,13 +282,13 @@ public class Finder implements Serializable {
         }
     }
 
-    public void deleteFile(final String id,final String timestamp) {
+    public void deleteFile(final String id, final String timestamp) {
         try {
-            File dir = new File(Constants.ADDRESS_TMP+id+"_"+timestamp);
-            if(dir.exists()){
+            File dir = new File(Constants.ADDRESS_TMP + id + "_" + timestamp);
+            if (dir.exists()) {
                 FileUtils.deleteDirectory(dir);
             }
-            System.out.println("------"+id+"_"+timestamp+"目录删除成功！------");
+            System.out.println("------" + id + "_" + timestamp + "目录删除成功！------");
         } catch (IOException e) {
             e.printStackTrace();
         }

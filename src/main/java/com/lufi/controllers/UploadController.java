@@ -22,7 +22,7 @@ public class UploadController {
 
     @GetMapping("/")
     public String page() {
-        return "success";
+        return "index";
     }
 
     @RequestMapping(value = "upload", method = RequestMethod.POST)

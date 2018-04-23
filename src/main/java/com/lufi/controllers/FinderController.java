@@ -82,11 +82,8 @@ public class FinderController {
     public String fetch(@RequestParam(value = "id") String id,
                         @RequestParam(value = "timestamp") String timestamp) {
         String message = queue.poll();
-        if(message.contains("true")){
-
-            Gson gson = new Gson();
-            DataInfo dataInfo = gson.fromJson(message,DataInfo.class);
-            logService.addHistory(id,dataInfo.toString());
+        if(message != null && message.contains("true")){
+            logService.addHistory(id,message);
         }
         return message;
     }

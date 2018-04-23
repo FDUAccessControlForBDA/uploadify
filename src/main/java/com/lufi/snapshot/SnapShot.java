@@ -39,18 +39,26 @@ public class SnapShot implements Serializable {
         type = FilenameUtils.getExtension(fileName).toLowerCase();
         long fileSize = con.getSize();
 
+        //判断sum是否为0
+        float prop;
+        if(dataInfo.sum == 0){
+            prop = 0;
+        }else{
+            prop = dataInfo.priv * 100 / dataInfo.sum;
+        }
+
         // 初始化输出文件
-        reportName = Constants.ADDRESS_STORE + id + timestamp + ".txt";
+        reportName = Constants.ADDRESS_STORE + id + timestamp + Constants.SUFFIX_REPORT;
         BufferedWriter writer = null;
         FileOutputStream writerStream = new FileOutputStream(reportName,true);
 
         try {
             buffer.append(splitLine)
-                    .append("#文件名：").append(fileName).append(System.getProperty("line.separator"))
+                    .append("#文件名：").append(FilenameUtils.getName(fileName)).append(System.getProperty("line.separator"))
                     .append("#文件类型：").append(type).append(System.getProperty("line.separator"))
                     .append("#文件大小：").append(fileSize)
                     .append("字节").append(System.getProperty("line.separator"))
-                    .append("#隐私信息所占比：").append((float) dataInfo.priv * 100 / dataInfo.sum)
+                    .append("#隐私信息所占比：").append(prop)
                     .append("%").append(System.getProperty("line.separator")).append(splitLine)
                     .append("详细信息如下").append(System.getProperty("line.separator"));
             //TODO;
