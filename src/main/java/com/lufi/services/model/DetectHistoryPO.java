@@ -19,12 +19,6 @@ public class DetectHistoryPO {
     private String user_id;
 
     @Column
-    private String detect_files;
-
-    @Column
-    private String report_path;
-
-    @Column
     private String detect_detail;
 
     @Column
@@ -32,11 +26,9 @@ public class DetectHistoryPO {
 
     public DetectHistoryPO(){}
 
-    public DetectHistoryPO(String user_id, String detect_files, String detect_detail, String report_path, Timestamp time){
+    public DetectHistoryPO(String user_id, String detect_detail, Timestamp time){
         this.user_id = user_id;
         this.detect_detail = detect_detail;
-        this.detect_files = detect_files;
-        this.report_path = report_path;
         this.detect_time = time;
     }
 
@@ -54,22 +46,6 @@ public class DetectHistoryPO {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
-    }
-
-    public String getDetect_files() {
-        return detect_files;
-    }
-
-    public void setDetect_files(String detect_files) {
-        this.detect_files = detect_files;
-    }
-
-    public String getReport_path() {
-        return report_path;
-    }
-
-    public void setReport_path(String report_path) {
-        this.report_path = report_path;
     }
 
     public String getDetect_detail() {
